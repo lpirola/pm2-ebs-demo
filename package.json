@@ -16,6 +16,7 @@
     "helmet": "^3.10",
     "hpp": "^0.2",
     "postgraphql": "^3.5",
+    "prom-client": "^10.2",
     "raven": "^2.3",
     "throng": "^4.0",
     "winston": "^2.4"
