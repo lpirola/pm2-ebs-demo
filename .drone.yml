@@ -2,8 +2,8 @@ pipeline:
   tests:
     image: node:alpine
     commands:
-      - npm
-      - npm test
+      - npm i
+      - npm t
     when:
       event: [push, tag]
 
@@ -58,7 +58,7 @@ pipeline:
     url: http://cluster.bonde.org
     service: staging/api-services
     group: concurrent
-    docker_image: nossas/bonde-graphql:${DRONE_TAG##v}
+    docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
     timeout: 360
     confirm: true
     secrets: [ rancher_access_key, rancher_secret_key ]
@@ -71,7 +71,7 @@ pipeline:
     url: http://cluster.bonde.org
     service: staging/api-services
     group: concurrent
-    docker_image: nossas/bonde-graphql:${DRONE_TAG##v}
+    docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
     timeout: 360
     confirm: true
     secrets: [ rancher_access_key, rancher_secret_key ]

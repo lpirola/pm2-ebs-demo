@@ -10,7 +10,7 @@ import helmet from 'helmet'
 import hpp from 'hpp'
 import throng from 'throng'
 import Raven from 'raven'
-import os from 'os'
+const client = require('prom-client')
 
 dotenv.config()
 
@@ -22,6 +22,11 @@ const DefaultServerConfig = {
   databaseUrl: process.env.DATABASE_URL,
   sentryDns: process.env.SENTRY_DSN
 }
+
+const defaultLabels = { serviceName: 'bonde_graphql_' + process.env.SCHEMA_NAME };
+client.register.setDefaultLabels(defaultLabels);
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics({ timeout: 5000 }); // Probe every 5th second.
 
 export const createServer = (config) => {
   const __PROD__ = config.nodeEnv === 'production'
@@ -56,28 +61,7 @@ export const createServer = (config) => {
   app.use(hpp())
   app.use(compression())
 
-  app.get('/ping', (req, res) => res.json({
-    online: true,
-    os: {
-      arch: os.arch(),
-      loadavg: os.loadavg(),
-      freemem: os.freemem(),
-      platform: os.platform(),
-      totalmem: os.totalmem(),
-      uptime: os.uptime(),
-      release: os.release(),
-    },
-    process: {
-      execArgv: process.execArgv,
-      execPath: process.execPath,
-      memoryUsage: process.memoryUsage(),
-      pid: process.pid,
-      platform: process.platform,
-      uptime: process.uptime(),
-    },
-    uptime: process.uptime(),
-    status: 'ok',
-  }))
+  app.get('/metrics', (req, res) => res.end(client.register.metrics()))
 
   app.use(postgraphql(config.databaseUrl, config.schemaName, optionsPostgraph))
 
