@@ -1,13 +1,13 @@
 pipeline:
   tests:
-    image: node
+    image: node:alpine
     commands:
-      - yarn
-      - yarn test
+      - npm i
+      - npm t
     when:
       event: [push, tag]
 
-  docker-staging:
+  publish-staging:
     image: plugins/docker
     repo: nossas/bonde-graphql
     secrets: [ docker_username, docker_password ]
@@ -17,10 +17,11 @@ pipeline:
       status: success
       branch: [hotfix-*, release-*, feature-*, develop]
 
-  deploy-rancher-staging:
+  deploy-staging-api-v2:
     image: peloton/drone-rancher
     url: http://cluster.bonde.org
     service: staging/api-v2
+    group: concurrent
     docker_image: nossas/bonde-graphql:${DRONE_BRANCH}
     timeout: 360
     confirm: true
@@ -29,7 +30,20 @@ pipeline:
       status: success
       branch: [hotfix-*, release-*, feature-*, develop]
 
-  docker-production:
+  deploy-staging-api-services:
+    image: peloton/drone-rancher
+    url: http://cluster.bonde.org
+    service: staging/api-services
+    group: concurrent
+    docker_image: nossas/bonde-graphql:${DRONE_BRANCH}
+    timeout: 360
+    confirm: true
+    secrets: [ rancher_access_key, rancher_secret_key ]
+    when:
+      status: success
+      branch: [hotfix-*, release-*, feature-*, develop]
+
+  publish-production:
     image: plugins/docker
     repo: nossas/bonde-graphql
     secrets: [ docker_username, docker_password ]
@@ -39,18 +53,28 @@ pipeline:
       status: success
       event: tag
 
-  deploy-production:
-    image: appleboy/drone-ssh
-    host: ssh.bonde.org
-    username: ubuntu
-    secrets: [ ssh_key ]
-    command_timeout: 120
-    port: 22
-    secrets: [ ssh_key ]
-    script:
-      - sudo docker pull nossas/bonde-graphql:${DRONE_TAG##v}
-      - sudo docker tag nossas/bonde-graphql:${DRONE_TAG##v} dokku/data:latest
-      - dokku tags:deploy data latest
+  deploy-production-api-v2:
+    image: peloton/drone-rancher
+    url: http://cluster.bonde.org
+    service: staging/api-services
+    group: concurrent
+    docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
+    timeout: 360
+    confirm: true
+    secrets: [ rancher_access_key, rancher_secret_key ]
+    when:
+      status: success
+      event: tag
+
+  deploy-production-api-services:
+    image: peloton/drone-rancher
+    url: http://cluster.bonde.org
+    service: staging/api-services
+    group: concurrent
+    docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
+    timeout: 360
+    confirm: true
+    secrets: [ rancher_access_key, rancher_secret_key ]
     when:
       status: success
       event: tag
@@ -58,7 +82,7 @@ pipeline:
   notify:
     image: plugins/slack
     webhook: https://hooks.slack.com/services/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
-    channel: n_tech
+    channel: bonde_bots
     username: CI - ${DRONE_REPO_NAME}
     when:
       event: [ push, tag, build, publish, deployment, pull_request ]
