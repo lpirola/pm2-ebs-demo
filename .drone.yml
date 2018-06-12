@@ -20,20 +20,7 @@ pipeline:
   deploy-staging-api-v2:
     image: peloton/drone-rancher
     url: http://cluster.bonde.org
-    service: staging/api-v2
-    group: concurrent
-    docker_image: nossas/bonde-graphql:${DRONE_BRANCH}
-    timeout: 360
-    confirm: true
-    secrets: [ rancher_access_key, rancher_secret_key ]
-    when:
-      status: success
-      branch: [hotfix-*, release-*, feature-*, develop]
-
-  deploy-staging-api-services:
-    image: peloton/drone-rancher
-    url: http://cluster.bonde.org
-    service: staging/api-services
+    service: webservers/api-v2
     group: concurrent
     docker_image: nossas/bonde-graphql:${DRONE_BRANCH}
     timeout: 360
@@ -56,21 +43,7 @@ pipeline:
   deploy-production-api-v2:
     image: peloton/drone-rancher
     url: http://cluster.bonde.org
-    service: staging/api-services
-    group: concurrent
-    docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
-    timeout: 360
-    confirm: true
-    secrets: [ rancher_access_key, rancher_secret_key ]
-    when:
-      status: success
-      event: tag
-
-  deploy-production-api-services:
-    image: peloton/drone-rancher
-    url: http://cluster.bonde.org
-    service: staging/api-services
-    group: concurrent
+    service: webservers/api-v2
     docker_image: "nossas/bonde-graphql:${DRONE_TAG##v}"
     timeout: 360
     confirm: true
