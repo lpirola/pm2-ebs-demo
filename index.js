@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import http from 'http'
 import express from 'express'
-import postgraphql from 'postgraphql'
+import { postgraphile } from 'postgraphile'
 import winston from 'winston'
 import expressWinston from 'express-winston'
 import cors from 'cors'
@@ -35,6 +35,7 @@ export const createServer = (config) => {
     jwtSecret: process.env.JWT_SECRET,
     jwtPgTypeIdentifier: process.env.JWT_TYPE,
     pgDefaultRole: process.env.PG_DEFAULT_ROLE,
+    disableDefaultMutations: true,
     watchPg: true
   }
   if (!__PROD__) {
@@ -63,7 +64,7 @@ export const createServer = (config) => {
 
   app.get('/metrics', (req, res) => res.end(client.register.metrics()))
 
-  app.use(postgraphql(config.databaseUrl, config.schemaName, optionsPostgraph))
+  app.use(postgraphile(config.databaseUrl, config.schemaName, optionsPostgraph))
 
   app.use(expressWinston.errorLogger({
     transports: [
