@@ -15,7 +15,7 @@
     "express-winston": "^2.4",
     "helmet": "^3.10",
     "hpp": "^0.2",
-    "postgraphile": "^4.0.0-rc.1",
+    "postgraphile": "^4",
     "prom-client": "^10.2",
     "raven": "^2.3",
     "throng": "^4.0",
